@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Calendar, RefreshCw } from 'lucide-react';
 import { useBookingStore } from './store/useBookingStore';
 import TimelineGrid from './components/TimelineGrid';
+import ReservationCreateModal from './components/ReservationCreateModal';
+import ReservationDetailModal from './components/ReservationDetailModal';
 
 export default function App() {
   const { selectedDate, setSelectedDate } = useBookingStore();
@@ -10,7 +12,14 @@ export default function App() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 1. 회의실 전체 목록 조회 (GET /api/rooms)
+  // 모달 제어 상태
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [selectedSlotTime, setSelectedSlotTime] = useState('09:00');
+
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+
   const fetchRooms = async () => {
     try {
       const res = await axios.get('http://localhost:8080/api/rooms');
@@ -20,7 +29,6 @@ export default function App() {
     }
   };
 
-  // 2. 특정 날짜 예약 현황 조회 (GET /api/reservations?date=...)
   const fetchReservations = async () => {
     try {
       setLoading(true);
@@ -41,9 +49,21 @@ export default function App() {
     fetchReservations();
   }, [selectedDate]);
 
+  // 빈 슬롯 클릭 시 등록 모달 열기
+  const handleOpenCreate = (room, slotTime) => {
+    setSelectedRoom(room);
+    setSelectedSlotTime(slotTime);
+    setCreateModalOpen(true);
+  };
+
+  // 예약 블록 클릭 시 상세/취소 모달 열기
+  const handleOpenDetail = (reservation) => {
+    setSelectedReservation(reservation);
+    setDetailModalOpen(true);
+  };
+
   return (
       <div className="min-h-screen p-8 max-w-7xl mx-auto">
-        {/* 헤더 및 컨트롤러 영역 */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -54,7 +74,6 @@ export default function App() {
             </p>
           </div>
 
-          {/* 날짜 선택 피커 및 새로고침 버튼 */}
           <div className="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
             <Calendar className="text-slate-400 ml-2" size={18} />
             <input
@@ -74,16 +93,38 @@ export default function App() {
           </div>
         </header>
 
-        {/* 타임라인 메인 그리드 */}
         <main>
           {rooms.length === 0 ? (
               <div className="text-center py-20 text-slate-400 text-sm">
                 회의실 정보를 불러오는 중입니다...
               </div>
           ) : (
-              <TimelineGrid rooms={rooms} reservations={reservations} />
+              <TimelineGrid
+                  rooms={rooms}
+                  reservations={reservations}
+                  onOpenCreate={handleOpenCreate}
+                  onOpenDetail={handleOpenDetail}
+              />
           )}
         </main>
+
+        {/* 예약 등록 모달 */}
+        <ReservationCreateModal
+            isOpen={createModalOpen}
+            onClose={() => setCreateModalOpen(false)}
+            room={selectedRoom}
+            initialTime={selectedSlotTime}
+            selectedDate={selectedDate}
+            onSuccess={fetchReservations}
+        />
+
+        {/* 예약 상세 및 취소 모달 */}
+        <ReservationDetailModal
+            isOpen={detailModalOpen}
+            onClose={() => setDetailModalOpen(false)}
+            reservation={selectedReservation}
+            onSuccess={fetchReservations}
+        />
       </div>
   );
 }

@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173") // 브라우저 CORS 허용
 public class ReservationController {
 
     private final ReservationService reservationService;
