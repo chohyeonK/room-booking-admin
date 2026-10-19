@@ -52,4 +52,21 @@ public class Reservation {
             this.status = "CONFIRMED";
         }
     }
+
+    // 신규 생성용 생성자
+    public Reservation(Room room, Member member, LocalDate reservationDate,
+                       LocalTime startTime, LocalTime endTime, String purpose) {
+        this.room = room;
+        this.member = member;
+        this.reservationDate = reservationDate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.purpose = purpose;
+        this.status = "CONFIRMED";
+    }
+
+    // 예약 취소 메서드 (소프트 딜리트 / 상태 변경)
+    public void cancel() {
+        this.status = "CANCELLED";
+    }
 }
