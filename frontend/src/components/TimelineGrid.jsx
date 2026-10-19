@@ -2,8 +2,12 @@ import React from 'react';
 import { TIME_SLOTS, isSlotReserved } from '../utils/timeUtils';
 import { Users, MapPin } from 'lucide-react';
 
-export default function TimelineGrid({ rooms, reservations }) {
-    // 마지막 18:00은 종료 기준선이므로 헤더에는 17:30까지만 슬롯 열로 표시
+export default function TimelineGrid({
+                                         rooms,
+                                         reservations,
+                                         onOpenCreate,
+                                         onOpenDetail
+                                     }) {
     const displaySlots = TIME_SLOTS.slice(0, -1);
 
     return (
@@ -12,7 +16,7 @@ export default function TimelineGrid({ rooms, reservations }) {
                 <table className="w-full border-collapse">
                     <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500">
-                        <th className="p-4 text-left min-w-[200px] sticky left-0 bg-slate-50 z-10 border-r border-slate-200">
+                        <th className="p-4 text-left min-w-[200px] w-60 sticky left-0 bg-slate-50 z-10 border-r border-slate-200">
                             회의실
                         </th>
                         {displaySlots.map((slot) => (
@@ -24,14 +28,12 @@ export default function TimelineGrid({ rooms, reservations }) {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                     {rooms.map((room) => {
-                        // 해당 회의실의 CONFIRMED 상태인 예약들만 필터링
                         const roomReservations = reservations.filter(
                             (r) => r.roomId === room.id && r.status === 'CONFIRMED'
                         );
 
                         return (
                             <tr key={room.id} className="hover:bg-slate-50/50 transition">
-                                {/* 회의실 기본 정보 열 (좌측 고정 sticky) */}
                                 <td className="p-4 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-sm whitespace-nowrap">
                                     <div className="font-semibold text-slate-800 text-sm">{room.name}</div>
                                     <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
@@ -44,7 +46,6 @@ export default function TimelineGrid({ rooms, reservations }) {
                                     </div>
                                 </td>
 
-                                {/* 30분 단위 슬롯 렌더링 */}
                                 {displaySlots.map((slot) => {
                                     const activeReservation = roomReservations.find((r) =>
                                         isSlotReserved(r, slot)
@@ -58,16 +59,24 @@ export default function TimelineGrid({ rooms, reservations }) {
                                             }`}
                                         >
                                             {activeReservation ? (
-                                                <div className="h-full w-full rounded bg-indigo-600 text-white flex flex-col justify-center items-center px-1 text-[11px] shadow-sm leading-tight transition hover:bg-indigo-700">
+                                                <div
+                                                    onClick={() => onOpenDetail(activeReservation)}
+                                                    className="h-full w-full rounded bg-indigo-600 text-white flex flex-col justify-center items-center px-1 text-[11px] shadow-sm leading-tight transition hover:bg-indigo-700 cursor-pointer"
+                                                    title="클릭하여 상세 조회 및 취소"
+                                                >
                             <span className="font-medium truncate w-full">
                               {activeReservation.purpose}
                             </span>
                                                     <span className="text-[10px] text-indigo-200 truncate w-full">
-                              {activeReservation.memberName} ({activeReservation.department})
+                              {activeReservation.memberName}
                             </span>
                                                 </div>
                                             ) : (
-                                                <div className="h-full w-full rounded hover:bg-slate-100/70 transition cursor-pointer flex items-center justify-center text-xs text-slate-300">
+                                                <div
+                                                    onClick={() => onOpenCreate(room, slot)}
+                                                    className="h-full w-full rounded hover:bg-slate-100/70 transition cursor-pointer flex items-center justify-center text-xs text-slate-300 hover:text-indigo-600"
+                                                    title={`${room.name} ${slot} 예약하기`}
+                                                >
                                                     +
                                                 </div>
                                             )}

@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // 프론트엔드 로컬 연동 대비 CORS 허용
+@CrossOrigin(origins = "http://localhost:5173") // 브라우저 CORS 허용
 public class RoomController {
 
     private final RoomService roomService;
